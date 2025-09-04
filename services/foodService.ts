@@ -20,7 +20,11 @@ class FoodService {
       
       return product;
     } catch (error) {
-      console.error('Error fetching product:', error);
+      if (error instanceof Error && error.message === 'Product not found') {
+        console.warn('Product not found in database, using mock data:', error.message);
+      } else {
+        console.error('Error fetching product:', error);
+      }
       // Return mock data for demonstration
       return this.getMockProduct(barcode);
     }
