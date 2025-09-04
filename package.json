@@ -1,5 +1,5 @@
 {
-  "name": "bolt-expo-starter",
+  "name": "expo-starter",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "private": true,
@@ -13,7 +13,7 @@
     "@lucide/lab": "^0.1.2",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
-    "expo": "^53.0.0",
+    "expo": "^53.0.22",
     "expo-barcode-scanner": "^13.0.1",
     "expo-blur": "~14.1.3",
     "expo-camera": "^16.1.11",
