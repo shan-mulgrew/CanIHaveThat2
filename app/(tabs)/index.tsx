@@ -56,7 +56,7 @@ export default function ScannerScreen() {
     return (
       <SafeAreaView style={styles.permissionContainer}>
         <View style={styles.permissionContent}>
-          <Camera size={80} color="#2563EB" strokeWidth={1.5} />
+          <Camera size={80} color="#2563EB" strokeWidth={1.0} />
           <Text style={styles.permissionTitle}>Camera Access Required</Text>
           <Text style={styles.permissionText}>
             We need camera access to scan barcodes and identify food allergens
@@ -72,18 +72,25 @@ export default function ScannerScreen() {
   }
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    if (hasScanned || isLoading) return;
-    
+    console.log('[SCAN EVENT]', data);
+    if (hasScanned || isLoading) {
+      console.log('[SCAN IGNORED] already scanned or loading');
+      return;
+    }
+  
     setHasScanned(true);
     setIsLoading(true);
-
+    console.log('[FETCH START]', data);
+  
     try {
       const product = await foodService.getProductByBarcode(data);
+      console.log('[FETCH SUCCESS]', product);
       setScannedProduct(product);
     } catch (error) {
+      console.error('[FETCH ERROR]', error);
       Alert.alert('Error', 'Failed to fetch product information. Please try again.');
-      console.error('Barcode scan error:', error);
     } finally {
+      console.log('[FETCH END]');
       setIsLoading(false);
     }
   };
@@ -128,6 +135,7 @@ export default function ScannerScreen() {
         <CameraView
           style={styles.camera}
           facing={facing}
+          zoom={0} // <-- ensure fully wide view
           onBarcodeScanned={handleBarCodeScanned}
           barcodeScannerSettings={{
             barcodeTypes: ['ean13', 'ean8', 'upc_a', 'code128'],
