@@ -135,7 +135,8 @@ export default function ScannerScreen() {
         <CameraView
           style={styles.camera}
           facing={facing}
-          zoom={0} // <-- ensure fully wide view
+          enableTorch = {flash}
+          zoom={0.08} // <-- ensure fully wide view
           onBarcodeScanned={handleBarCodeScanned}
           barcodeScannerSettings={{
             barcodeTypes: ['ean13', 'ean8', 'upc_a', 'code128'],
@@ -253,6 +254,9 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+    backgroundColor: 'black', // ensures clean background
+    borderRadius: 5,          // removes rounded edges
+    overflow: 'hidden',       // clips any extra overlay
   },
   scanLine: {
     position: 'absolute',
@@ -274,17 +278,17 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(70, 80, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   instructions: {
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
   },
   instructionText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#6B7280',
     textAlign: 'center',
   },
