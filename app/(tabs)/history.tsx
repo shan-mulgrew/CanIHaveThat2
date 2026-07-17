@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  RefreshControlBase,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Clock, Trash2 } from 'lucide-react-native';
@@ -21,6 +22,7 @@ export default function HistoryScreen() {
 
   const loadHistory = async () => {
     try {
+      console.log('loading history');
       const history = await storageService.getScanHistory();
       setScanHistory(history);
     } catch (error) {
@@ -47,7 +49,7 @@ export default function HistoryScreen() {
           <Clock size={80} color="#D1D5DB" strokeWidth={1.5} />
           <Text style={styles.emptyTitle}>No scans yet</Text>
           <Text style={styles.emptyText}>
-            Start scanning food products to see your history here
+            Start scanning food products to see your history here....
           </Text>
         </View>
       </SafeAreaView>

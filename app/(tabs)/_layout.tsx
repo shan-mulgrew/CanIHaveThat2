@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Camera, History, Settings } from 'lucide-react-native';
+import { Camera, History, Settings, User } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -22,7 +22,7 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen
-        name="scanner"
+        name="index"
         options={{
           title: 'Scanner',
           tabBarIcon: ({ size, color }) => (
@@ -49,11 +49,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="test"
+        name="profile"
         options={{
-          title: 'test',
+          title: 'Profile',
           tabBarIcon: ({ size, color }) => (
-            <Settings size={size} color={color} strokeWidth={2} />
+            <User size={size} color={color} strokeWidth={2} />
           ),
         }}
       />

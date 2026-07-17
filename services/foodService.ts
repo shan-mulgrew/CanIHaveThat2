@@ -4,7 +4,7 @@ import { storageService } from './storageService';
 class FoodService {
   private baseUrl = 'https://world.openfoodfacts.org/api/v0/product';
 
-  async getProductByBarcode(barcode: string): Promise<Product> {
+  async getProductByBarcode(barcode: string): Promise<Product | null> {
     try {
       const response = await fetch(`${this.baseUrl}/${barcode}.json`);
       const data = await response.json();
@@ -16,6 +16,7 @@ class FoodService {
       const product = this.parseOpenFoodFactsProduct(data.product, barcode);
       
       // Save to history
+     // console.log('adding to history :' ,{product});
       await storageService.addToScanHistory(product);
       
       return product;
@@ -26,7 +27,8 @@ class FoodService {
         console.error('Error fetching product:', error);
       }
       // Return mock data for demonstration
-      return this.getMockProduct(barcode);
+      //return this.getMockProduct(barcode);
+      return null;
     }
   }
 
@@ -66,7 +68,7 @@ class FoodService {
     };
 
     const allergenMapping = {
-      milk: ['milk', 'dairy', 'lactose', 'cream', 'butter', 'cheese'],
+      milk: ['milk', 'dairy', 'lactose', 'cream', 'butter', 'cheese','skimmed milk','milk powder'],
       eggs: ['eggs', 'egg'],
       peanuts: ['peanuts', 'peanut'],
       tree_nuts: ['nuts', 'almonds', 'walnuts', 'cashews', 'hazelnuts'],
@@ -118,13 +120,15 @@ class FoodService {
   }
 
   private parseIngredients(ingredientsText: string): string[] {
+    console.log('........',ingredientsText);
     if (!ingredientsText) return [];
-    
+    console.log("Ingredients text:", ingredientsText);
+    console.log("Length:", ingredientsText.length);
     return ingredientsText
       .split(/[,;]/)
       .map(ingredient => ingredient.trim())
       .filter(ingredient => ingredient.length > 0)
-      .slice(0, 20); // Limit to first 20 ingredients
+      //.slice(0, 20); // Limit to first 20 ingredients
   }
 
   private getMockProduct(barcode: string): Product {

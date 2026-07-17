@@ -16,6 +16,7 @@ import { Camera, FlashlightOff as FlashOff, Slash as FlashOn, RotateCcw } from '
 import { ProductCard } from '@/components/ProductCard';
 import { ScanOverlay } from '@/components/ScanOverlay';
 import { foodService } from '@/services/foodService';
+import { apiService } from '@/services/apiService';
 import { Product } from '@/types/product';
 
 const { width, height } = Dimensions.get('window');
@@ -72,6 +73,7 @@ export default function ScannerScreen() {
   }
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
+    console.log('show scanner');
     console.log('[SCAN EVENT]', data);
     if (hasScanned || isLoading) {
       console.log('[SCAN IGNORED] already scanned or loading');
@@ -80,12 +82,14 @@ export default function ScannerScreen() {
   
     setHasScanned(true);
     setIsLoading(true);
-    console.log('[FETCH START]', data);
+    //console.log('[FETCH START]', data);
   
     try {
       const product = await foodService.getProductByBarcode(data);
-      console.log('[FETCH SUCCESS]', product);
+     // console.log('[FETCH SUCCESS]', product);
+    // const response = await apiService.scanProduct(data);
       setScannedProduct(product);
+      
     } catch (error) {
       console.error('[FETCH ERROR]', error);
       Alert.alert('Error', 'Failed to fetch product information. Please try again.');
