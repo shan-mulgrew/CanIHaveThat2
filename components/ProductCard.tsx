@@ -17,11 +17,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const getAllergenIcon = (status: AllergenStatus) => {
     switch (status) {
       case 'present':
-        return <XCircle size={16} color="#EF4444" strokeWidth={2} />;
+        return <CheckCircle size={16} color="#EF4444" strokeWidth={2} />;
       case 'may_contain':
         return <AlertTriangle size={16} color="#F59E0B" strokeWidth={2} />;
       case 'not_present':
-        return <CheckCircle size={16} color="#10B981" strokeWidth={2} />;
+        return <XCircle size={16} color="#10B981" strokeWidth={2} />;
       default:
         return <Info size={16} color="#6B7280" strokeWidth={2} />;
     }

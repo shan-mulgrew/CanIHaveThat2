@@ -18,14 +18,16 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font", 
+      "expo-font",
       "expo-web-browser",
       [
         "expo-camera",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan barcodes."
         }
-      ]
+      ],
+      "expo-splash-screen",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

@@ -9,21 +9,47 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, Shield, Info, ChevronRight, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { AllergenPreference } from '@/types/allergen';
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
   const [strictMode, setStrictMode] = useState(false);
+  
+  const [allergens, setAllergens] = useState<AllergenPreference>({
+    milk: true,
+    eggs: true,
+    peanuts: true,
+    tree_nuts: true,
+    soy: true,
+    wheat: true,
+    fish: true,
+    shellfish: true,
+  });
 
-  const allergens = [
-    { name: 'Milk', enabled: true },
-    { name: 'Eggs', enabled: true },
-    { name: 'Peanuts', enabled: true },
-    { name: 'Tree Nuts', enabled: true },
-    { name: 'Soy', enabled: false },
-    { name: 'Wheat', enabled: false },
-    { name: 'Fish', enabled: false },
-    { name: 'Shellfish', enabled: false },
+  const allergenList: {
+    key: keyof AllergenPreference;
+    name: string;
+  }[] = [
+    { key: 'milk', name: 'Milk' },
+    { key: 'eggs', name: 'Eggs' },
+    { key: 'peanuts', name: 'Peanuts' },
+    { key: 'tree_nuts', name: 'Tree Nuts' },
+    { key: 'soy', name: 'Soy' },
+    { key: 'wheat', name: 'Wheat' },
+    { key: 'fish', name: 'Fish' },
+    { key: 'shellfish', name: 'Shellfish' },
   ];
+
+  const toggleAllergen = (allergen: keyof AllergenPreference, enabled: boolean) => {
+    setAllergens(current =>
+    ({
+      ...current,
+      [allergen]: enabled
+    })
+      
+    );
+  };
+  
 
   const SettingItem = ({
     icon,
@@ -104,23 +130,34 @@ export default function SettingsScreen() {
 
           <View style={styles.allergenList}>
             <Text style={styles.allergenTitle}>Track These Allergens:</Text>
-            {allergens.map((allergen, index) => (
-              <View key={index} style={styles.allergenItem}>
-                <Text
-                  style={[
-                    styles.allergenName,
-                    allergen.enabled && styles.allergenEnabled,
-                  ]}>
-                  {allergen.name}
-                </Text>
-                <Switch
-                  value={allergen.enabled}
-                  onValueChange={() => {}}
-                  trackColor={{ false: '#D1D5DB', true: '#FEF3C7' }}
-                  thumbColor={allergen.enabled ? '#F59E0B' : '#F3F4F6'}
-                />
-              </View>
-            ))}
+            {allergenList.map(allergen => (
+  <View key={allergen.key} style={styles.allergenItem}>
+    <Text
+      style={[
+        styles.allergenName,
+        allergens[allergen.key] && styles.allergenEnabled,
+      ]}
+    >
+      {allergen.name}
+    </Text>
+
+    <Switch
+      value={allergens[allergen.key]}
+      onValueChange={(value) =>
+        toggleAllergen(allergen.key, value)
+      }
+      trackColor={{
+        false: '#D1D5DB',
+        true: '#FEF3C7',
+      }}
+      thumbColor={
+        allergens[allergen.key]
+          ? '#F59E0B'
+          : '#F3F4F6'
+      }
+    />
+  </View>
+))}
           </View>
         </View>
 

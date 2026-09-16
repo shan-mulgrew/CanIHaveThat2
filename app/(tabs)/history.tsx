@@ -22,7 +22,7 @@ export default function HistoryScreen() {
 
   const loadHistory = async () => {
     try {
-      console.log('loading history');
+      //console.log('loading history');
       const history = await storageService.getScanHistory();
       setScanHistory(history);
     } catch (error) {

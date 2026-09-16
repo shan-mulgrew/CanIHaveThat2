@@ -18,6 +18,8 @@ import { ScanOverlay } from '@/components/ScanOverlay';
 import { foodService } from '@/services/foodService';
 import { apiService } from '@/services/apiService';
 import { Product } from '@/types/product';
+import { storageService } from '@/services/storageService';
+import { allergenService } from '@/services/allergenService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,8 +29,9 @@ export default function ScannerScreen() {
   const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [flash, setFlash] = useState(false);
-  const [hasScanned, setHasScanned] = useState(false);
+  //const [hasScanned, setHasScanned] = useState(false);
   const scanAnimation = useRef(new Animated.Value(0)).current;
+  const scanLock = useRef(false);
 
   useEffect(() => {
     const pulse = Animated.loop(
@@ -73,35 +76,68 @@ export default function ScannerScreen() {
   }
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    console.log('show scanner');
-    console.log('[SCAN EVENT]', data);
-    if (hasScanned || isLoading) {
-      console.log('[SCAN IGNORED] already scanned or loading');
+    if (scanLock.current) {
+      console.log('[SCAN IGNORED]', data);
       return;
     }
   
-    setHasScanned(true);
+    scanLock.current = true;
+  
     setIsLoading(true);
-    //console.log('[FETCH START]', data);
   
     try {
+      // 1. Get product info
       const product = await foodService.getProductByBarcode(data);
-     // console.log('[FETCH SUCCESS]', product);
-    // const response = await apiService.scanProduct(data);
+      console.log('[PRODUCT]', product);
+  
+      if (!product) {
+        Alert.alert(
+          'Product Not Found',
+          'This product could not be found.'
+        );
+  
+        scanLock.current = false;
+        return;
+      }
+  
+      // 2. Get user allergen preferences
+      const preferences = await storageService.getAllergenPreferences();
+      console.log('[PREFERENCES]', preferences);
+  
+      // 3. Check product against preferences
+      console.log('[ALLERGEN SERVICE]', allergenService);
+      console.log('[CHECK PRODUCT]', allergenService?.checkProduct);
+  
+      const warnings = allergenService.checkProduct(
+        product,
+        preferences,
+        false
+      );
+  
+      console.log('[WARNINGS]', warnings);
+  
       setScannedProduct(product);
-      
+  
     } catch (error) {
       console.error('[FETCH ERROR]', error);
-      Alert.alert('Error', 'Failed to fetch product information. Please try again.');
+  
+      Alert.alert(
+        'Error',
+        'Failed to fetch product information. Please try again.'
+      );
+  
+      // Allow another scan after an error
+      scanLock.current = false;
+  
     } finally {
       console.log('[FETCH END]');
+      scanLock.current = false;
       setIsLoading(false);
     }
   };
 
   const resetScan = () => {
     setScannedProduct(null);
-    setHasScanned(false);
     setIsLoading(false);
   };
 

@@ -1,4 +1,4 @@
-import { Product, AllergenStatus } from '@/types/product';
+import { Product } from '@/types/product';
 import { storageService } from './storageService';
 
 class FoodService {
@@ -6,6 +6,8 @@ class FoodService {
 
   async getProductByBarcode(barcode: string): Promise<Product | null> {
     try {
+      //console.log("barcode");
+      //console.log(barcode);
       const response = await fetch(`${this.baseUrl}/${barcode}.json`);
       const data = await response.json();
 
@@ -14,6 +16,7 @@ class FoodService {
       }
 
       const product = this.parseOpenFoodFactsProduct(data.product, barcode);
+      
       
       // Save to history
      // console.log('adding to history :' ,{product});
@@ -56,6 +59,7 @@ class FoodService {
     tracesArray: string[],
     ingredientsText: string
   ): Product['allergens'] {
+  
     const allergens: Product['allergens'] = {
       milk: 'unknown',
       eggs: 'unknown',
@@ -66,61 +70,94 @@ class FoodService {
       fish: 'unknown',
       shellfish: 'unknown',
     };
-
+  
     const allergenMapping = {
-      milk: ['milk', 'dairy', 'lactose', 'cream', 'butter', 'cheese','skimmed milk','milk powder'],
+      milk: ['milk', 'dairy', 'lactose', 'skimmed-milk', 'milk-powder'],
       eggs: ['eggs', 'egg'],
-      peanuts: ['peanuts', 'peanut'],
-      tree_nuts: ['nuts', 'almonds', 'walnuts', 'cashews', 'hazelnuts'],
+      peanuts: ['peanuts', 'peanut',],
+      tree_nuts: ['almonds', 'walnuts', 'cashews', 'hazelnuts'],
       soy: ['soy', 'soya'],
-      wheat: ['wheat', 'gluten'],
+      wheat: ['wheat'],
       fish: ['fish'],
       shellfish: ['shellfish', 'crustaceans', 'molluscs'],
     };
-
-    const ingredientsLower = ingredientsText.toLowerCase();
-
-    // Check for present allergens
+  
+    //   // 1. Check OpenFoodFacts confirmed allergens
     allergensArray.forEach(allergen => {
       Object.keys(allergenMapping).forEach(key => {
-        if (allergenMapping[key as keyof typeof allergenMapping].some(term => 
-          allergen.includes(term)
-        )) {
-          allergens[key as keyof Product['allergens']] = 'present';
+  
+        const allergenKey = key as keyof typeof allergenMapping;
+  
+        if (
+          allergenMapping[allergenKey].some(term =>
+            allergen.includes(term)
+          )
+        ) {
+          allergens[allergenKey] = 'present';
         }
       });
     });
-
-    // Check for traces (may contain)
+  
+    // Check traces / may contain
     tracesArray.forEach(trace => {
       Object.keys(allergenMapping).forEach(key => {
-        if (allergenMapping[key as keyof typeof allergenMapping].some(term => 
-          trace.includes(term)
-        ) && allergens[key as keyof Product['allergens']] === 'unknown') {
-          allergens[key as keyof Product['allergens']] = 'may_contain';
+  
+        const allergenKey = key as keyof typeof allergenMapping;
+  
+        if (
+          allergenMapping[allergenKey].some(term =>
+            trace.includes(term)
+          ) &&
+          allergens[allergenKey] === 'unknown'
+        ) {
+          allergens[allergenKey] = 'may_contain';
         }
       });
     });
+  
+    // text checker incase an allergen is missed 
+    // Check ingredient text
+    const ingredientsLower = ingredientsText.toLowerCase();
 
-    // Check ingredients text for additional detection
+    console.log('ingredientsLower');
+    console.log(ingredientsLower);
+    const ingredientSection = ingredientsLower.split(
+      /allergy advice|may contain|may also contain/
+    )[0];
+
     Object.keys(allergenMapping).forEach(key => {
-      if (allergens[key as keyof Product['allergens']] === 'unknown') {
-        const hasAllergen = allergenMapping[key as keyof typeof allergenMapping].some(term =>
-          ingredientsLower.includes(term)
-        );
-        if (hasAllergen) {
-          allergens[key as keyof Product['allergens']] = 'present';
-        } else {
-          allergens[key as keyof Product['allergens']] = 'not_present';
-        }
+      const allergenKey = key as keyof typeof allergenMapping;
+
+      const foundInIngredients = allergenMapping[allergenKey].some(term =>
+        ingredientSection.includes(term.toLowerCase())
+      );
+
+      console.log('[INGREDIENT CHECK]');
+      console.log('Allergen:', allergenKey);
+      console.log('Looking for:', allergenMapping[allergenKey]);
+      console.log('Found:', foundInIngredients);
+
+      if (foundInIngredients) {
+        // Explicit ingredient evidence takes priority over may_contain
+        allergens[allergenKey] = 'present';
       }
     });
-
+    // i dont want to label an unknown allergen as not present when not info is given about it
+    // Anything not identify
+    // Object.keys(allergens).forEach(key => {
+  
+    //   const allergenKey = key as keyof Product['allergens'];
+  
+    //   if (allergens[allergenKey] === 'unknown') {
+    //     allergens[allergenKey] = 'not_present';
+    //   }
+    // });
+  
     return allergens;
   }
 
   private parseIngredients(ingredientsText: string): string[] {
-    console.log('........',ingredientsText);
+
     if (!ingredientsText) return [];
     console.log("Ingredients text:", ingredientsText);
     console.log("Length:", ingredientsText.length);
@@ -128,51 +165,7 @@ class FoodService {
       .split(/[,;]/)
       .map(ingredient => ingredient.trim())
       .filter(ingredient => ingredient.length > 0)
-      //.slice(0, 20); // Limit to first 20 ingredients
-  }
 
-  private getMockProduct(barcode: string): Product {
-    // Mock data for demonstration
-    const mockProducts = [
-      {
-        barcode,
-        name: 'Organic Peanut Butter',
-        brand: 'Nature\'s Best',
-        ingredients: ['Organic Peanuts', 'Salt'],
-        allergens: {
-          milk: 'not_present' as AllergenStatus,
-          eggs: 'not_present' as AllergenStatus,
-          peanuts: 'present' as AllergenStatus,
-          tree_nuts: 'may_contain' as AllergenStatus,
-          soy: 'not_present' as AllergenStatus,
-          wheat: 'not_present' as AllergenStatus,
-          fish: 'not_present' as AllergenStatus,
-          shellfish: 'not_present' as AllergenStatus,
-        },
-        nutritionGrade: 'b',
-        scanDate: new Date(),
-      },
-      {
-        barcode,
-        name: 'Whole Wheat Bread',
-        brand: 'Bakery Fresh',
-        ingredients: ['Whole Wheat Flour', 'Water', 'Yeast', 'Salt', 'Sugar'],
-        allergens: {
-          milk: 'not_present' as AllergenStatus,
-          eggs: 'not_present' as AllergenStatus,
-          peanuts: 'not_present' as AllergenStatus,
-          tree_nuts: 'not_present' as AllergenStatus,
-          soy: 'may_contain' as AllergenStatus,
-          wheat: 'present' as AllergenStatus,
-          fish: 'not_present' as AllergenStatus,
-          shellfish: 'not_present' as AllergenStatus,
-        },
-        nutritionGrade: 'a',
-        scanDate: new Date(),
-      },
-    ];
-
-    return mockProducts[Math.floor(Math.random() * mockProducts.length)];
   }
 }
 
