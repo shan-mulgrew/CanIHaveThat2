@@ -93,10 +93,19 @@ export default function ScannerScreen() {
       if (!product) {
         Alert.alert(
           'Product Not Found',
-          'This product could not be found.'
+          'This product could not be found.',
+          [
+            {
+              text: 'OK',
+              onPress : () =>{
+                scanLock.current =false;
+              }
+            }
+          ],
+          {
+          cancelable: false
+          }
         );
-  
-        scanLock.current = false;
         return;
       }
   
@@ -105,9 +114,7 @@ export default function ScannerScreen() {
       console.log('[PREFERENCES]', preferences);
   
       // 3. Check product against preferences
-      console.log('[ALLERGEN SERVICE]', allergenService);
-      console.log('[CHECK PRODUCT]', allergenService?.checkProduct);
-  
+      console.log('[CHECK PRODUCT]');
       const warnings = allergenService.checkProduct(
         product,
         preferences,
@@ -117,6 +124,8 @@ export default function ScannerScreen() {
       console.log('[WARNINGS]', warnings);
   
       setScannedProduct(product);
+
+      scanLock.current = false;
   
     } catch (error) {
       console.error('[FETCH ERROR]', error);
@@ -131,7 +140,7 @@ export default function ScannerScreen() {
   
     } finally {
       console.log('[FETCH END]');
-      scanLock.current = false;
+      //scanLock.current = false;
       setIsLoading(false);
     }
   };

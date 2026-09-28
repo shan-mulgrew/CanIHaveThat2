@@ -24,13 +24,12 @@ import {
       Object.keys(preferences).forEach(key => {
        
         const allergen = key as keyof AllergenPreference;
-        console.log("all allergens");
+        
         console.log(allergen);
         if (!preferences[allergen]) {
           return;
         }
-        console.log("allergen that user has selected as yes");
-        console.log(allergen);
+       
   
         const status = product.allergens[allergen];
   
@@ -50,6 +49,20 @@ import {
       });
   
       return warnings;
+    }
+
+    getSortedAllergens(product: Product): [string, AllergenStatus][] {
+      const priority: Record<AllergenStatus, number> = {
+        present: 0,
+        may_contain: 1,
+        unknown: 2,
+        not_present: 3,
+      };
+    
+      return Object.entries(product.allergens).sort(
+        ([, statusA], [, statusB]) =>
+          priority[statusA] - priority[statusB]
+      );
     }
   }
   

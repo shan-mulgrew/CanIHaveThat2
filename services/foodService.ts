@@ -8,11 +8,21 @@ class FoodService {
     try {
       //console.log("barcode");
       //console.log(barcode);
+      
       const response = await fetch(`${this.baseUrl}/${barcode}.json`);
+       // Check HTTP response before trying to parse JSON
+    if (!response.ok) {
+      console.warn(
+        `Product lookup failed: ${response.status} ${response.statusText}`
+      );
+
+      return null;
+    }
       const data = await response.json();
 
-      if (data.status === 0) {
-        throw new Error('Product not found');
+      if (data.status === 0 || !data.product) {
+        console.warn('Product not found:', barcode);
+        return null;
       }
 
       const product = this.parseOpenFoodFactsProduct(data.product, barcode);

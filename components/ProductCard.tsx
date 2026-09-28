@@ -8,12 +8,14 @@ import {
 } from 'react-native';
 import { TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Circle as XCircle, Info } from 'lucide-react-native';
 import { Product, AllergenStatus } from '@/types/product';
+import { allergenService } from '@/services/allergenService';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  
   const getAllergenIcon = (status: AllergenStatus) => {
     switch (status) {
       case 'present':
@@ -27,6 +29,8 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+  const sortedAllergens = allergenService.getSortedAllergens(product);
+  
   const getAllergenColor = (status: AllergenStatus) => {
     switch (status) {
       case 'present':
@@ -91,23 +95,26 @@ export function ProductCard({ product }: ProductCardProps) {
       <View style={styles.allergensSection}>
         <Text style={styles.sectionTitle}>Allergen Analysis</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.allergensList}>
-          {Object.entries(product.allergens).map(([allergen, status]) => (
-            <View
-              key={allergen}
-              style={[
-                styles.allergenBadge,
-                { backgroundColor: getAllergenColor(status) },
-              ]}>
-              {getAllergenIcon(status)}
-              <Text
-                style={[
-                  styles.allergenText,
-                  { color: getAllergenTextColor(status) },
-                ]}>
-                {allergen}
-              </Text>
-            </View>
-          ))}
+        {sortedAllergens.map(([allergen, status]) => (
+        <View
+          key={allergen}
+          style={[
+            styles.allergenBadge,
+            { backgroundColor: getAllergenColor(status) },
+          ]}
+        >
+          {getAllergenIcon(status)}
+
+          <Text
+            style={[
+              styles.allergenText,
+              { color: getAllergenTextColor(status) },
+            ]}
+          >
+            {allergen.replace('_', ' ')}
+          </Text>
+        </View>
+      ))}
         </ScrollView>
       </View>
 

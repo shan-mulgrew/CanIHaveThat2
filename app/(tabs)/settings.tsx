@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, Shield, Info, ChevronRight, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { AllergenPreference } from '@/types/allergen';
+import { storageService } from '@/services/storageService';
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
   const [strictMode, setStrictMode] = useState(false);
+  useEffect(() => {
+    const loadPreferences = async () => {
+      const savedPreferences =
+        await storageService.getAllergenPreferences();
   
+      setAllergens(savedPreferences);
+    };
+  
+    loadPreferences();
+  }, []);
   const [allergens, setAllergens] = useState<AllergenPreference>({
     milk: true,
     eggs: true,
@@ -40,14 +50,20 @@ export default function SettingsScreen() {
     { key: 'shellfish', name: 'Shellfish' },
   ];
 
-  const toggleAllergen = (allergen: keyof AllergenPreference, enabled: boolean) => {
-    setAllergens(current =>
-    ({
-      ...current,
-      [allergen]: enabled
-    })
-      
-    );
+  const toggleAllergen = async (
+    allergen: keyof AllergenPreference,
+    enabled: boolean
+  ) => {
+    console.log('setting allergens ' + allergen, enabled);
+  
+    const newAllergens = {
+      ...allergens,
+      [allergen]: enabled,
+    };
+  
+    setAllergens(newAllergens);
+  
+    await storageService.saveAllergenPreferences(newAllergens);
   };
   
 
