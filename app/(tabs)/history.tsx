@@ -12,9 +12,11 @@ import { Clock, Trash2 } from 'lucide-react-native';
 import { ProductCard } from '@/components/ProductCard';
 import { storageService } from '@/services/storageService';
 import { Product } from '@/types/product';
+import { AllergenPreference } from '@/types/allergen';
 
 export default function HistoryScreen() {
   const [scanHistory, setScanHistory] = useState<Product[]>([]);
+  const [allergenPreferences, setAllergenPreferences] = useState<AllergenPreference | null>(null);
 
   useEffect(() => {
     loadHistory();
@@ -23,8 +25,12 @@ export default function HistoryScreen() {
   const loadHistory = async () => {
     try {
       //console.log('loading history');
-      const history = await storageService.getScanHistory();
+      const [history, preferences] = await Promise.all([
+        storageService.getScanHistory(),
+        storageService.getAllergenPreferences(),
+      ]);
       setScanHistory(history);
+      setAllergenPreferences(preferences);
     } catch (error) {
       console.error('Failed to load scan history:', error);
     }
@@ -67,8 +73,12 @@ export default function HistoryScreen() {
       </View>
 
       <ScrollView style={styles.scrollContainer}>
-        {scanHistory.map((product, index) => (
-          <ProductCard key={`${product.barcode}-${index}`} product={product} />
+        {allergenPreferences && scanHistory.map((product, index) => (
+          <ProductCard
+            key={`${product.barcode}-${index}`}
+            product={product}
+            preferences={allergenPreferences}
+          />
         ))}
       </ScrollView>
     </SafeAreaView>

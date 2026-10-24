@@ -18,8 +18,8 @@ import { ScanOverlay } from '@/components/ScanOverlay';
 import { foodService } from '@/services/foodService';
 import { apiService } from '@/services/apiService';
 import { Product } from '@/types/product';
+import { AllergenPreference } from '@/types/allergen';
 import { storageService } from '@/services/storageService';
-import { allergenService } from '@/services/allergenService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,6 +27,7 @@ export default function ScannerScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
+  const [scannedPreferences, setScannedPreferences] = useState<AllergenPreference | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [flash, setFlash] = useState(false);
   //const [hasScanned, setHasScanned] = useState(false);
@@ -113,16 +114,7 @@ export default function ScannerScreen() {
       const preferences = await storageService.getAllergenPreferences();
       console.log('[PREFERENCES]', preferences);
   
-      // 3. Check product against preferences
-      console.log('[CHECK PRODUCT]');
-      const warnings = allergenService.checkProduct(
-        product,
-        preferences,
-        false
-      );
-  
-      console.log('[WARNINGS]', warnings);
-  
+      setScannedPreferences(preferences);
       setScannedProduct(product);
 
       scanLock.current = false;
@@ -147,6 +139,7 @@ export default function ScannerScreen() {
 
   const resetScan = () => {
     setScannedProduct(null);
+    setScannedPreferences(null);
     setIsLoading(false);
   };
 
@@ -162,7 +155,9 @@ export default function ScannerScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView style={styles.resultContainer}>
-          <ProductCard product={scannedProduct} />
+          {scannedPreferences && (
+            <ProductCard product={scannedProduct} preferences={scannedPreferences} />
+          )}
           <TouchableOpacity style={styles.scanAgainButton} onPress={resetScan}>
             <Text style={styles.scanAgainText}>Scan Another Product</Text>
           </TouchableOpacity>

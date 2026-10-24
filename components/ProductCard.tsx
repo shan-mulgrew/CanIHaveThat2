@@ -8,13 +8,15 @@ import {
 } from 'react-native';
 import { TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Circle as XCircle, Info } from 'lucide-react-native';
 import { Product, AllergenStatus } from '@/types/product';
+import { AllergenPreference } from '@/types/allergen';
 import { allergenService } from '@/services/allergenService';
 
 interface ProductCardProps {
   product: Product;
+  preferences: AllergenPreference;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, preferences }: ProductCardProps) {
   
   const getAllergenIcon = (status: AllergenStatus) => {
     switch (status) {
@@ -29,7 +31,10 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  const sortedAllergens = allergenService.getSortedAllergens(product);
+  const sortedAllergens = allergenService
+    .getSortedAllergens(product)
+    .filter(([allergen]) => preferences[allergen as keyof AllergenPreference]);
+  const warnings = allergenService.checkProduct(product, preferences, false);
   
   const getAllergenColor = (status: AllergenStatus) => {
     switch (status) {
@@ -57,9 +62,7 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  const hasAllergens = Object.values(product.allergens).some(
-    status => status === 'present' || status === 'may_contain'
-  );
+  const hasAllergens = warnings.length > 0;
 
   return (
     <View style={styles.container}>
